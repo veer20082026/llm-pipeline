@@ -25,6 +25,10 @@ from config.settings import (
 from pipeline.pipeline_runner import PipelineRunner
 from pipeline.prompt_builder import PERSONAS
 
+# Fallback definitions for WSGI / ASGI / Vercel auto-discovery scanners
+app = None
+handler = None
+
 # -----------------------------------------------------------------------------
 # PAGE CONFIGURATION & STYLING
 # -----------------------------------------------------------------------------
@@ -93,7 +97,7 @@ st.markdown(
     }
     </style>
     """,
-    unsafe_allow_style_safe=True,
+    unsafe_allow_html=True,
 )
 
 

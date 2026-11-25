@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LLM Pipeline - End-to-End AI Engineering</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    .badge-pending { background-color: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+    .badge-running { background-color: #eff6ff; color: #2563eb; border: 1px solid #93c5fd; }
+    .badge-completed { background-color: #f0fdf4; color: #16a34a; border: 1px solid #86efac; }
+    .badge-failed { background-color: #fef2f2; color: #dc2626; border: 1px solid #fca5a5; }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen">
+  <!-- Navbar -->
+  <header class="bg-white border-b border-slate-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+      <div class="flex items-center space-x-3">
+        <span class="text-2xl">⚡</span>
+        <div>
+          <h1 class="text-xl font-bold text-slate-900 leading-none">LLM Pipeline</h1>
+          <p class="text-xs text-slate-500 mt-0.5">End-to-End Multi-Stage AI Engineering Dashboard</p>
+        </div>
+      </div>
+      <div class="flex items-center space-x-2 text-xs text-slate-600 bg-slate-100 px-3 py-1.5 rounded-full border border-slate-200">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span>Vercel Serverless Ready</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <!-- Left Configuration Sidebar (4 cols) -->
+    <div class="lg:col-span-4 space-y-5">
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-4">
+        <h2 class="font-bold text-slate-900 flex items-center text-sm uppercase tracking-wide">
+          <i class="fa-solid fa-sliders mr-2 text-indigo-500"></i> Model & API Configuration
+        </h2>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">API Key (OpenAI / Provider)</label>
+          <input id="apiKey" type="password" placeholder="sk-..." class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50" />
+          <p class="text-[11px] text-slate-500 mt-1">Leave empty to use server environment key (if set in Vercel).</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Custom Base URL (Optional)</label>
+          <input id="baseUrl" type="text" placeholder="https://api.groq.com/openai/v1" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50" />
+          <p class="text-[11px] text-slate-500 mt-1">Supports Groq, DeepSeek, Together AI, or local Ollama.</p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Select Model</label>
+          <select id="modelSelect" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+            <option value="gpt-4o-mini" selected>gpt-4o-mini (Fast & Efficient)</option>
+            <option value="gpt-4o">gpt-4o (High Intelligence)</option>
+            <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+            <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile (Groq)</option>
+            <option value="deepseek-chat">deepseek-chat (DeepSeek)</option>
+          </select>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+              <span>Temperature</span>
+              <span id="tempVal" class="text-indigo-600 font-bold">0.7</span>
+            </div>
+            <input id="temperature" type="range" min="0" max="1.5" step="0.05" value="0.7" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="document.getElementById('tempVal').innerText = this.value" />
+          </div>
+          <div>
+            <div class="flex justify-between text-xs font-semibold text-slate-600 mb-1">
+              <span>Max Tokens</span>
+              <span id="tokenVal" class="text-indigo-600 font-bold">1500</span>
+            </div>
+            <input id="maxTokens" type="range" min="100" max="4000" step="100" value="1500" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600" oninput="document.getElementById('tokenVal').innerText = this.value" />
+          </div>
+        </div>
+
+        <div class="pt-2 border-t border-slate-100">
+          <label class="block text-xs font-semibold text-slate-600 mb-1">Desired Output Style</label>
+          <select id="styleSelect" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+            <option value="Concise & Direct" selected>Concise & Direct</option>
+            <option value="Detailed & Analytical">Detailed & Analytical</option>
+            <option value="Bullet Points & Summary">Bullet Points & Summary</option>
+            <option value="Beginner-Friendly Explanation">Beginner-Friendly Explanation</option>
+            <option value="Technical & Code-Oriented">Technical & Code-Oriented</option>
+            <option value="Creative & Engaging">Creative & Engaging</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1">AI Persona / Role</label>
+          <select id="personaSelect" class="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+            <option value="General Assistant" selected>General Assistant</option>
+            <option value="Senior Software Engineer">Senior Software Engineer</option>
+            <option value="Academic Research Scientist">Academic Research Scientist</option>
+            <option value="Executive Product Manager">Executive Product Manager</option>
+            <option value="Patient Educator">Patient Educator</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Workspace Area (8 cols) -->
+    <div class="lg:col-span-8 space-y-6">
+      <!-- Input Panel -->
+      <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-sm space-y-3">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <h2 class="font-bold text-slate-900 text-sm flex items-center">
+            <i class="fa-regular fa-keyboard mr-2 text-indigo-500"></i> User Input Prompt
+          </h2>
+          <div class="flex items-center space-x-2">
+            <span class="text-xs text-slate-500 font-medium">Sample:</span>
+            <button onclick="loadSample('quantum')" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition font-medium">Quantum</button>
+            <button onclick="loadSample('meeting')" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition font-medium">Meeting</button>
+            <button onclick="loadSample('product')" class="text-xs px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md transition font-medium">Product</button>
+            <button onclick="clearAll()" class="text-xs px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 rounded-md transition font-medium">Clear</button>
+          </div>
+        </div>
+
+        <textarea id="userInput" rows="4" placeholder="Enter questions, meeting notes, code snippets, or text to analyze..." class="w-full p-3 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50 font-sans"></textarea>
+
+        <div class="flex justify-end">
+          <button id="runBtn" onclick="runPipeline()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-medium text-sm rounded-lg shadow-sm flex items-center space-x-2 transition">
+            <i class="fa-solid fa-rocket"></i>
+            <span>Run Pipeline</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 5-Stage Live Pipeline Tracker -->
+      <div class="space-y-3">
+        <h3 class="font-bold text-slate-900 text-sm flex items-center">
+          <i class="fa-solid fa-chart-diagram mr-2 text-indigo-500"></i> Pipeline Execution Stages
+        </h3>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3" id="stageCards">
+          <!-- Stage 1 -->
+          <div id="card-stage1" class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center">
+            <div class="text-xs font-semibold text-slate-600 mb-1.5">1. Input Proc.</div>
+            <div id="badge-stage1" class="badge-pending text-[11px] font-semibold px-2 py-0.5 rounded-full inline-block mb-1">⏳ Pending</div>
+            <div id="time-stage1" class="text-[11px] text-slate-400">⏱️ —</div>
+          </div>
+          <!-- Stage 2 -->
+          <div id="card-stage2" class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center">
+            <div class="text-xs font-semibold text-slate-600 mb-1.5">2. Prompt Eng.</div>
+            <div id="badge-stage2" class="badge-pending text-[11px] font-semibold px-2 py-0.5 rounded-full inline-block mb-1">⏳ Pending</div>
+            <div id="time-stage2" class="text-[11px] text-slate-400">⏱️ —</div>
+          </div>
+          <!-- Stage 3 -->
+          <div id="card-stage3" class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center">
+            <div class="text-xs font-semibold text-slate-600 mb-1.5">3. LLM API</div>
+            <div id="badge-stage3" class="badge-pending text-[11px] font-semibold px-2 py-0.5 rounded-full inline-block mb-1">⏳ Pending</div>
+            <div id="time-stage3" class="text-[11px] text-slate-400">⏱️ —</div>
+          </div>
+          <!-- Stage 4 -->
+          <div id="card-stage4" class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center">
+            <div class="text-xs font-semibold text-slate-600 mb-1.5">4. Response Proc.</div>
+            <div id="badge-stage4" class="badge-pending text-[11px] font-semibold px-2 py-0.5 rounded-full inline-block mb-1">⏳ Pending</div>
+            <div id="time-stage4" class="text-[11px] text-slate-400">⏱️ —</div>
+          </div>
+          <!-- Stage 5 -->
+          <div id="card-stage5" class="bg-white p-3 rounded-lg border border-slate-200 shadow-sm text-center">
+            <div class="text-xs font-semibold text-slate-600 mb-1.5">5. Output Gen.</div>
+            <div id="badge-stage5" class="badge-pending text-[11px] font-semibold px-2 py-0.5 rounded-full inline-block mb-1">⏳ Pending</div>
+            <div id="time-stage5" class="text-[11px] text-slate-400">⏱️ —</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results & Metrics -->
+      <div id="resultsSection" class="hidden space-y-4">
+        <!-- Metrics Row -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div class="bg-white p-3 rounded-lg border border-slate-200 text-center">
+            <div class="text-[11px] uppercase font-semibold text-slate-400">Total Latency</div>
+            <div id="metricLatency" class="text-lg font-bold text-slate-800 mt-0.5">0.0s</div>
+          </div>
+          <div class="bg-white p-3 rounded-lg border border-slate-200 text-center">
+            <div class="text-[11px] uppercase font-semibold text-slate-400">Total Tokens</div>
+            <div id="metricTokens" class="text-lg font-bold text-slate-800 mt-0.5">0</div>
+          </div>
+          <div class="bg-white p-3 rounded-lg border border-slate-200 text-center">
+            <div class="text-[11px] uppercase font-semibold text-slate-400">Output Words</div>
+            <div id="metricWords" class="text-lg font-bold text-slate-800 mt-0.5">0</div>
+          </div>
+          <div class="bg-white p-3 rounded-lg border border-slate-200 text-center">
+            <div class="text-[11px] uppercase font-semibold text-slate-400">Speed</div>
+            <div id="metricSpeed" class="text-lg font-bold text-slate-800 mt-0.5">0 t/s</div>
+          </div>
+          <div class="bg-white p-3 rounded-lg border border-slate-200 text-center">
+            <div class="text-[11px] uppercase font-semibold text-slate-400">Reading Time</div>
+            <div id="metricReading" class="text-lg font-bold text-slate-800 mt-0.5">~0 min</div>
+          </div>
+        </div>
+
+        <!-- Output Tabs -->
+        <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+          <div class="flex border-b border-slate-200 bg-slate-50 text-xs font-semibold text-slate-600">
+            <button onclick="switchTab('output')" id="tabBtn-output" class="px-4 py-2.5 border-b-2 border-indigo-600 text-indigo-600 bg-white">📝 Final Output</button>
+            <button onclick="switchTab('compare')" id="tabBtn-compare" class="px-4 py-2.5 hover:text-slate-900 border-b-2 border-transparent">⚖️ Input vs Output</button>
+            <button onclick="switchTab('inspector')" id="tabBtn-inspector" class="px-4 py-2.5 hover:text-slate-900 border-b-2 border-transparent">🔍 Inspector</button>
+            <button onclick="switchTab('logs')" id="tabBtn-logs" class="px-4 py-2.5 hover:text-slate-900 border-b-2 border-transparent">📜 Logs</button>
+          </div>
+
+          <div class="p-5">
+            <!-- Tab: Output -->
+            <div id="tabContent-output" class="space-y-4">
+              <div id="finalOutputContent" class="text-sm whitespace-pre-wrap leading-relaxed text-slate-800 bg-slate-50 p-4 rounded-lg border border-slate-200 font-sans min-h-[120px]"></div>
+              <div class="flex space-x-3">
+                <button onclick="copyOutput()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg border border-slate-300 transition flex items-center space-x-1.5">
+                  <i class="fa-regular fa-copy"></i>
+                  <span>Copy to Clipboard</span>
+                </button>
+                <button onclick="downloadOutput()" class="px-3.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium rounded-lg border border-slate-300 transition flex items-center space-x-1.5">
+                  <i class="fa-solid fa-download"></i>
+                  <span>Download (.txt)</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Tab: Compare -->
+            <div id="tabContent-compare" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="space-y-1">
+                <div class="text-xs font-bold text-slate-600">Original User Input:</div>
+                <div id="compareInput" class="text-xs bg-slate-50 p-3 rounded-lg border border-slate-200 whitespace-pre-wrap text-slate-700 h-64 overflow-y-auto"></div>
+              </div>
+              <div class="space-y-1">
+                <div class="text-xs font-bold text-slate-600">Generated LLM Output:</div>
+                <div id="compareOutput" class="text-xs bg-slate-50 p-3 rounded-lg border border-slate-200 whitespace-pre-wrap text-slate-700 h-64 overflow-y-auto"></div>
+              </div>
+            </div>
+
+            <!-- Tab: Inspector -->
+            <div id="tabContent-inspector" class="hidden space-y-2">
+              <div class="text-xs font-semibold text-slate-600 mb-1">Execution Bundle JSON:</div>
+              <pre id="inspectorContent" class="text-xs bg-slate-900 text-emerald-400 p-4 rounded-lg overflow-x-auto max-h-96"></pre>
+            </div>
+
+            <!-- Tab: Logs -->
+            <div id="tabContent-logs" class="hidden space-y-2">
+              <div class="text-xs font-semibold text-slate-600 mb-1">Execution Timeline:</div>
+              <pre id="logsContent" class="text-xs bg-slate-900 text-slate-200 p-4 rounded-lg overflow-x-auto max-h-96"></pre>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const SAMPLES = {
+      quantum: "What is quantum computing, how do qubits differ from classical bits, and what are its most promising real-world applications in the next decade?",
+      meeting: "Team Sync Notes:\n- Alice completed the authentication refactor and migrated to OAuth2 tokens.\n- Bob reported database connection timeouts on the reporting replica during peak hours.\n- Charlie proposed adding Redis caching for user profile lookups.\n- Action Items: Bob to scale replica IOPS by Wednesday. Charlie to submit PR.",
+      product: "We are launching 'DataPulse', a real-time anomaly detection tool for microservices architectures. Key features include zero-config telemetry ingestion, AI-driven root-cause alerts, and Slack/PagerDuty integrations."
+    };
+
+    let latestBundle = null;
+
+    function loadSample(key) {
+      document.getElementById('userInput').value = SAMPLES[key] || '';
+    }
+
+    function clearAll() {
+      document.getElementById('userInput').value = '';
+      document.getElementById('resultsSection').classList.add('hidden');
+      resetStages();
+    }
+
+    function resetStages() {
+      for (let i = 1; i <= 5; i++) {
+        const badge = document.getElementById(`badge-stage${i}`);
+        badge.className = 'badge-pending text-[11px] font-semibold px-2 py-0.5 rounded-full inline-block mb-1';
+        badge.innerText = '⏳ Pending';
+        document.getElementById(`time-stage${i}`).innerText = '⏱️ —';
+      }
+    }
+
+    function setStage(idx, status, latency) {
+      const badge = document.getElementById(`badge-stage${idx}`);
+      if (status === 'running') {
+        badge.className = 'badge-running text-[11px] font-semibold px-2 py-0.5 rounded-full inline-block mb-1';
+        badge.innerText = '🔄 Running';
+      } else if (status === 'completed') {
+        badge.className = 'badge-completed text-[11px] font-semibold px-2 py-0.5 rounded-full inline-block mb-1';
+        badge.innerText = '✅ Completed';
+        if (latency !== undefined) document.getElementById(`time-stage${idx}`).innerText = `⏱️ ${latency}s`;
+      } else if (status === 'failed') {
+        badge.className = 'badge-failed text-[11px] font-semibold px-2 py-0.5 rounded-full inline-block mb-1';
+        badge.innerText = '❌ Failed';
+        if (latency !== undefined) document.getElementById(`time-stage${idx}`).innerText = `⏱️ ${latency}s`;
+      }
+    }
+
+    async function runPipeline() {
+      const text = document.getElementById('userInput').value.trim();
+      if (!text) {
+        alert('Please enter text or click a sample button.');
+        return;
+      }
+
+      resetStages();
+      document.getElementById('resultsSection').classList.add('hidden');
+      const runBtn = document.getElementById('runBtn');
+      runBtn.disabled = true;
+      runBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Running...</span>';
+
+      setStage(1, 'running');
+
+      const payload = {
+        user_input: text,
+        model: document.getElementById('modelSelect').value,
+        style: document.getElementById('styleSelect').value,
+        persona: document.getElementById('personaSelect').value,
+        temperature: parseFloat(document.getElementById('temperature').value),
+        max_tokens: parseInt(document.getElementById('maxTokens').value),
+        api_key: document.getElementById('apiKey').value.trim() || undefined,
+        base_url: document.getElementById('baseUrl').value.trim() || undefined
+      };
+
+      try {
+        const response = await fetch('/api/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        latestBundle = data;
+
+        // Update stage badges from response
+        const stages = [
+          'Stage 1: Input Processing',
+          'Stage 2: Prompt Engineering',
+          'Stage 3: LLM Integration',
+          'Stage 4: Response Processing',
+          'Stage 5: Output Generation'
+        ];
+
+        stages.forEach((sName, i) => {
+          const rec = data.stages ? data.stages[sName] : null;
+          if (rec) {
+            setStage(i + 1, rec.status, rec.latency_seconds);
+          } else {
+            setStage(i + 1, data.success ? 'completed' : 'failed');
+          }
+        });
+
+        if (data.success) {
+          document.getElementById('resultsSection').classList.remove('hidden');
+          document.getElementById('metricLatency').innerText = `${data.total_execution_time_seconds || 0}s`;
+          document.getElementById('metricTokens').innerText = data.llm_metrics ? data.llm_metrics.total_tokens : 0;
+          document.getElementById('metricWords').innerText = data.response_metrics ? data.response_metrics.word_count : 0;
+          document.getElementById('metricSpeed').innerText = data.response_metrics ? `${data.response_metrics.tokens_per_second} t/s` : '0 t/s';
+          document.getElementById('metricReading').innerText = data.response_metrics ? `~${data.response_metrics.estimated_reading_time_minutes}m` : '~0m';
+
+          document.getElementById('finalOutputContent').innerText = data.final_output || data.response_metrics?.processed_response || '';
+          document.getElementById('compareInput').innerText = text;
+          document.getElementById('compareOutput').innerText = data.final_output || '';
+          document.getElementById('inspectorContent').innerText = JSON.stringify(data, null, 2);
+          document.getElementById('logsContent').innerText = data.logs ? data.logs.join('\n') : 'No logs';
+        } else {
+          alert('Pipeline Error: ' + (data.error_summary || data.error || 'Execution failed. Check your API key.'));
+        }
+      } catch (err) {
+        alert('Network or server error: ' + err.message);
+        setStage(1, 'failed');
+      } finally {
+        runBtn.disabled = false;
+        runBtn.innerHTML = '<i class="fa-solid fa-rocket"></i><span>Run Pipeline</span>';
+      }
+    }
+
+    function switchTab(name) {
+      ['output', 'compare', 'inspector', 'logs'].forEach(t => {
+        const btn = document.getElementById(`tabBtn-${t}`);
+        const content = document.getElementById(`tabContent-${t}`);
+        if (t === name) {
+          btn.className = 'px-4 py-2.5 border-b-2 border-indigo-600 text-indigo-600 bg-white font-semibold';
+          content.classList.remove('hidden');
+        } else {
+          btn.className = 'px-4 py-2.5 hover:text-slate-900 border-b-2 border-transparent';
+          content.classList.add('hidden');
+        }
+      });
+    }
+
+    function copyOutput() {
+      const text = document.getElementById('finalOutputContent').innerText;
+      navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
+    }
+
+    function downloadOutput() {
+      const text = document.getElementById('finalOutputContent').innerText;
+      const blob = new Blob([text], { type: 'text/plain' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'llm_pipeline_output.txt';
+      a.click();
+    }
+  </script>
+</body>
+</html>

@@ -183,15 +183,33 @@ Because the pipeline uses the universal OpenAI client specification, you can swi
 
 ---
 
-## 🖥️ Running the Application
+## 🖥️ Running & Deploying the Application
 
-Launch the Streamlit web dashboard:
+### 1. Local Streamlit Dashboard
+Launch the Streamlit web dashboard locally:
 ```bash
 streamlit run app.py
 ```
+The application will open automatically in your browser at `http://localhost:8501`.
 
-The application will open automatically in your default browser at:
-`http://localhost:8501`
+---
+
+### 2. Deploy to Vercel (Serverless Web App)
+This repository is pre-configured for **Vercel** with full-stack serverless routing:
+1. Push this repository to your GitHub account.
+2. In your [Vercel Dashboard](https://vercel.com), click **Add New** ➔ **Project** and import `llm-pipeline`.
+3. Add your `OPENAI_API_KEY` under **Environment Variables**.
+4. Click **Deploy**.
+
+Vercel automatically uses `vercel.json` and `api/index.py` to serve both the interactive web dashboard and the 5-stage pipeline API endpoints.
+
+---
+
+### 3. Deploy to Streamlit Community Cloud (Free Dedicated Host)
+1. Go to [share.streamlit.io](https://share.streamlit.io/) and log in with GitHub.
+2. Click **New app** and select repository `llm-pipeline` (`app.py`).
+3. Add `OPENAI_API_KEY` under Secrets and click **Deploy**.
+
 
 ---
 
